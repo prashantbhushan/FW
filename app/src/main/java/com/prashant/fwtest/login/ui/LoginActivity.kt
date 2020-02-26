@@ -60,7 +60,7 @@ class LoginActivity : BaseActivity() {
                 }
                 Result.ERROR -> {
                     loading.visibility = View.GONE
-                    showLoginFailed()
+                    showLoginFailed(it.error)
                 }
             }
         })
@@ -78,7 +78,7 @@ class LoginActivity : BaseActivity() {
                 }
                 Result.ERROR -> {
                     loading.visibility = View.GONE
-                    showLoginFailed()
+                    showLoginFailed(it.error)
                 }
             }
         })
@@ -92,8 +92,12 @@ class LoginActivity : BaseActivity() {
             .into(ivLogin)
     }
 
-    private fun showLoginFailed() {
-        Snackbar.make(container, R.string.login_failed, Snackbar.LENGTH_LONG).show()
+    private fun showLoginFailed(t: Throwable?) {
+        Snackbar.make(
+            container,
+            t?.message ?: getString(R.string.login_failed),
+            Snackbar.LENGTH_LONG
+        ).show()
     }
 
     private fun launchArticleListActivity() {

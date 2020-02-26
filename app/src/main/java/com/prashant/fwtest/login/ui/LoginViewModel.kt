@@ -2,12 +2,12 @@ package com.prashant.fwtest.login.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.prashant.fwtest.R
 import com.prashant.fwtest.di.scheduler.RunOn
 import com.prashant.fwtest.di.scheduler.SchedulerType
 import com.prashant.fwtest.login.data.repository.LoginRepository
 import com.prashant.fwtest.login.domain.LoginFormState
+import com.prashant.fwtest.util.BaseViewModel
 import com.prashant.fwtest.util.Result
 import io.reactivex.Scheduler
 import javax.inject.Inject
@@ -16,7 +16,7 @@ class LoginViewModel @Inject constructor(
     val repository: LoginRepository,
     @RunOn(SchedulerType.IO) private val ioScheduler: Scheduler,
     @RunOn(SchedulerType.UI) private val uiScheduler: Scheduler
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _loginForm = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginForm
@@ -28,17 +28,19 @@ class LoginViewModel @Inject constructor(
     val isLoggedIn: LiveData<Result<Boolean>> = _isLoggedIn
 
     private fun login(userId: String, password: String) {
-        repository.login(userId, password)
-            .observeOn(uiScheduler)
-            .subscribeOn(ioScheduler)
-            .doOnSubscribe({
-                _isLoginSuccess.value = Result.loading()
-            })
-            .subscribe({
-                _isLoginSuccess.value = Result.success(it)
-            }, {
-                _isLoginSuccess.value = Result.error(it)
-            })
+        disposables.add(
+            repository.login(userId, password)
+                .observeOn(uiScheduler)
+                .subscribeOn(ioScheduler)
+                .doOnSubscribe({
+                    _isLoginSuccess.value = Result.loading()
+                })
+                .subscribe({
+                    _isLoginSuccess.value = Result.success(it)
+                }, {
+                    _isLoginSuccess.value = Result.error(it)
+                })
+        )
     }
 
     fun loginDataChanged(userId: String?, password: String?) {
